@@ -1,7 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Authors>Rushdy Najath</Authors>
+    <Company>Electra Solutions</Company>
+    <PackageProjectUrl>https://github.com/rushdy20/WebAdvertApi.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rushdy20/WebAdvertApi.git</RepositoryUrl>
   </PropertyGroup>
 
 </Project>
