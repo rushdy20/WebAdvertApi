@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AdvertApi.Models;
+using AdvertApi.Models.Messages;
 using AdvertWebApi.Services;
+using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.SimpleNotificationService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace AdvertWebApi.Controllers
 {
@@ -15,10 +20,13 @@ namespace AdvertWebApi.Controllers
     public class AdvertApiController : ControllerBase
     {
         private readonly IAdvertStorageService _advertStorageService;
+        private readonly IConfiguration _configuration;
+        private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2;
 
-        public AdvertApiController(IAdvertStorageService advertStorageService)
+        public AdvertApiController(IAdvertStorageService advertStorageService, IConfiguration configuration)
         {
             _advertStorageService = advertStorageService;
+            _configuration = configuration;
         }
 
 
@@ -58,6 +66,8 @@ namespace AdvertWebApi.Controllers
             try
             {
                  await _advertStorageService.Confirm(model);
+                 await RaiseAdvertConformerMessage(model);
+
 
             }
             
@@ -71,6 +81,20 @@ namespace AdvertWebApi.Controllers
 
         }
 
-
+        private async Task RaiseAdvertConformerMessage(ConfirmAdvertModel model)
+        {
+            var topicArn = _configuration.GetValue<string>("TopicArn");
+            var dbmodel = await _advertStorageService.GetByIdAsync(model.Id);
+            using (var client = new AmazonSimpleNotificationServiceClient(bucketRegion))
+            {
+                var message = new AdvertConfirmMessage
+                {
+                    Id = model.Id,
+                    Title = dbmodel.Title
+                };
+                var messageJson = JsonConvert.SerializeObject(message);
+                await client.PublishAsync(topicArn, messageJson);
+            }
+        }
     }
 }

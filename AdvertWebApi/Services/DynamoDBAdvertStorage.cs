@@ -67,6 +67,19 @@ namespace AdvertWebApi.Services
             return true;
 
         }
+        public async Task<AdvertModel> GetByIdAsync(string id)
+        {
+            using (var client = new AmazonDynamoDBClient())
+            {
+                using (var context = new DynamoDBContext(client))
+                {
+                    var dbModel = await context.LoadAsync<AdvertDBModel>(id);
+                    if (dbModel != null) return _mapper.Map<AdvertModel>(dbModel);
+                }
+            }
+
+            throw new KeyNotFoundException();
+        }
 
         public async Task<bool> CheckHealthAsync()
         {
